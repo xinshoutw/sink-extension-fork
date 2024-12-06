@@ -11,7 +11,7 @@ export const useLinks = (count: number = 100) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const queryLinks = (count = 100, error?: () => void) =>
-    request(`/api/link/list?limit=${count}&cursor`)
+    request(`/api/link/list?limit=${count}`)
       .then(data => {
         if (data.statusMessage) {
           throw Error();
