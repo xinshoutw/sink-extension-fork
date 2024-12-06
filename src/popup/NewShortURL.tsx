@@ -45,6 +45,7 @@ export const NewShortURL = ({
   }, [key, url]);
 
   useEffect(() => {
+    // 初始時取得當前 tab 的 URL，若該 URL 已存在於 links 則進入編輯狀態
     chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
       if (tab?.url) {
         try {
@@ -56,6 +57,27 @@ export const NewShortURL = ({
       }
     });
   }, []);
+
+  // 當 url 有變化，且不是編輯模式時，自動產生 slug
+  useEffect(() => {
+    if (url && !editLink) {
+      const charSet = '023456789abcdfghijkmnopqrstuvwxyz';
+      const encoder = new TextEncoder();
+      const data = encoder.encode(url);
+
+      crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        let generatedSlug = '';
+        // 從 hash 中取前 4 bytes，並依餘數 map 至 charSet
+        for (let i = 0; i < 4; i++) {
+          const byte = hashArray[i];
+          const index = byte % charSet.length;
+          generatedSlug += charSet[index];
+        }
+        setKey(generatedSlug);
+      });
+    }
+  }, [url, editLink]);
 
   const handleCopy = () => {
     setCopied(true);
